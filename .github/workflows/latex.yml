@@ -5,28 +5,33 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # v6 使用 Node 24，可消除 checkout 的 Node 20 弃用提示
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
+      # xu-cheng/latex-action 对 root_file 含空格会拆成多个参数，导致找不到「TCF」
+      # 先复制为无空格文件名再编译
+      - name: Prepare TeX file (no spaces in path)
+        run: cp "TCF Canada Cheatsheet.tex" cheatsheet.tex
+
+      # 项目首行 % !TEX TS-program = lualatex，与 LuaLaTeX 一致
       - name: Compile LaTeX
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: "TCF Canada Cheatsheet.tex"
-          latexmk_use_xelatex: true  # 支持中文和自定义字体 (GoldmanSans)
-          latexmk_use_lualatex: false
+          root_file: cheatsheet.tex
+          latexmk_use_lualatex: true
+          latexmk_use_xelatex: false
           working_directory: .
           compiler: latexmk
 
       - name: Upload PDF artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pdf
-          path: |
-            *.pdf
-            **/*.pdf
+          path: cheatsheet.pdf
