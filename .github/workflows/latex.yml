@@ -1,0 +1,32 @@
+name: Build LaTeX to PDF
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: "TCF Canada Cheatsheet.tex"
+          latexmk_use_xelatex: true  # 支持中文和自定义字体 (GoldmanSans)
+          latexmk_use_lualatex: false
+          working_directory: .
+          compiler: latexmk
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf
+          path: |
+            *.pdf
+            **/*.pdf
